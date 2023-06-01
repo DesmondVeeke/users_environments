@@ -22,7 +22,7 @@ public class Environment {
     private List<User> participants;
 
     @ElementCollection
-    private List<Long> song_ids;
+    private List<Long> songs;
 
     private String name;
 

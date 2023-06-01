@@ -11,6 +11,8 @@ public class EnvironmentDTO {
     private long owner_id;
     private long id;
     private String name;
-    private List<Long> song_ids;
-    private List<Long> participant_ids;
+    private List<Long> songs;
+    private List<Long> participants;
+
+    private Boolean owner;
 }
