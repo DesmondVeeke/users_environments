@@ -46,30 +46,28 @@ public class EnvironmentService {
     }
 
     public EnvironmentDTO getEnvironment(EnvironmentDTO environmentDTO) {
-        //Find the environment with the DTO id
-        Optional<Environment> environmentOptional = environmentRepository.findById(environmentDTO.getId());
+        Environment environment = environmentRepository.findById(environmentDTO.getId()).orElse(null);
 
-        if(environmentOptional.isEmpty()){
+        if (environment == null) {
             return null;
         }
 
-        Environment environment = environmentOptional.get();
-        //Check whether the User Owner.getId() is the same as the DTO's ownerID
-        if(environmentDTO.getOwner_id() == environment.getOwner().getId()){
-            EnvironmentDTO foundDto = environmentMapper.EnvironmentToDTO(environment);
+        EnvironmentDTO foundDto = environmentMapper.EnvironmentToDTO(environment);
+
+        Long ownerID = environment.getOwner().getId();
+        List<Long> participantIds = environmentDTO.getParticipants();
+
+        if (participantIds.contains(ownerID)) {
             foundDto.setOwner(true);
             return foundDto;
-        } else{
-            List<Long> participantIds = environmentDTO.getParticipants();
-
-            // Check if any of the participant IDs in the DTO matches an ID in the environment's participant list
-            for (Long participantId : participantIds) {
-                if (environment.getParticipants().stream().anyMatch(user -> user.getId() == participantId)) {
-                    return environmentMapper.EnvironmentToDTO(environment);
-                }
-            }
-            return null;
         }
+
+        if(foundDto.getParticipants().contains(participantIds.get(0)))
+        {
+            return foundDto;
+        }
+
+        return null;
 
     }
 

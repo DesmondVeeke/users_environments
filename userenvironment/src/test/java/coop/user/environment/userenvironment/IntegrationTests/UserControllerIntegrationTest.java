@@ -4,10 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import coop.user.environment.userenvironment.DTO.User.LoginDTO;
 import coop.user.environment.userenvironment.DTO.User.RegisterDTO;
 import coop.user.environment.userenvironment.DTO.User.UserDTO;
-import coop.user.environment.userenvironment.Entities.User;
-import coop.user.environment.userenvironment.Interfaces.UserRepository;
-import coop.user.environment.userenvironment.Interfaces.UserRepositoryCustom;
-import coop.user.environment.userenvironment.Services.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -20,20 +16,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-
 @AutoConfigureMockMvc
 @SpringBootTest
 @Tag("IntegrationTests")
 public class UserControllerIntegrationTest {
-
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserRepositoryCustom userRepository;
 
     @Test
     public void GetUserById() throws Exception {
@@ -42,7 +30,7 @@ public class UserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.email", Matchers.is("user1@example.com")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email", Matchers.is("desmond@fontys.nl")));
     }
 
     @Test
@@ -80,8 +68,8 @@ public class UserControllerIntegrationTest {
     @Test
     public void LoginUser() throws Exception {
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setEmail("user1@example.com");
-        loginDTO.setPassword("password1");
+        loginDTO.setEmail("desmond@fontys.nl");
+        loginDTO.setPassword("rootpw");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -107,11 +95,8 @@ public class UserControllerIntegrationTest {
     public void UpdateUser() throws Exception {
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail("updated@example.com");
-        userDTO.setPassword("newpassword");
+        userDTO.setPassword("Th1s!p4s$w0rdisSafe");
 
-        User updatedUser = new User();
-        updatedUser.setId(1L);
-        updatedUser.setEmail("updated@example.com");
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -125,12 +110,12 @@ public class UserControllerIntegrationTest {
     public void UpdateUser_UserNotFound() throws Exception {
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail("updated@example.com");
-        userDTO.setPassword("newpassword");
+        userDTO.setPassword("1234N3wP!sword");
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", 0L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(userDTO)))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     @Test
@@ -153,5 +138,7 @@ public class UserControllerIntegrationTest {
             throw new RuntimeException(e);
         }
     }
+
+
 }
 

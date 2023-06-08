@@ -8,27 +8,35 @@ import java.util.regex.Pattern;
 @Component
 public class UserValidation {
 
-    public boolean isValidRegistration(RegisterDTO dto) {
-        boolean isValidEmail = isValidEmail(dto.getEmail());
-        boolean isValidPassword = isValidPassword(dto.getPassword());
+    public boolean isValidRegistration(RegisterDTO dto) throws Exception {
+        try{
+            validateEmail(dto.email);
+            validatePassword(dto.password);
 
-        return isValidEmail && isValidPassword;
+            return true;
+        }
+        catch(Exception e){
+            throw e;
+        }
+
     }
 
-    private boolean isValidEmail(String email) {
-        // Use a regular expression pattern to validate the email format
+    public void validateEmail(String email) throws Exception {
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         Pattern pattern = Pattern.compile(emailRegex);
 
-        return pattern.matcher(email).matches();
+        if (!pattern.matcher(email).matches()) {
+            throw new Exception("Invalid email address.");
+        }
     }
 
-    private boolean isValidPassword(String password) {
-        // Add your password validation logic here
-        // Example: Minimum length of 8 characters, at least one uppercase letter, one lowercase letter, and one digit
-        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=_\\-!¡?¿*])(?!.*\\s).{8,}$";
+    public void validatePassword(String password) throws  Exception {
+        String passwordRegex = "^(?=.*[a-zA-Z])(?=.*[@#$%^&+=_\\-!¡?¿*\\d])(?!.*\\s).{12,}$";
         Pattern pattern = Pattern.compile(passwordRegex);
 
-        return pattern.matcher(password).matches();
+        if (!pattern.matcher(password).matches()) {
+            throw new Exception("Invalid password. Password should contain at least one letter, one special character, no whitespace, and be at least 12 characters long.");
+        }
     }
+
 }

@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @CrossOrigin(origins = "http:localhost:3000")
 @RestController
@@ -37,10 +36,10 @@ public class EnvironmentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EnvironmentDTO> getEnvironment(@RequestBody EnvironmentDTO environmentDTO) {
-        EnvironmentDTO environment = environmentService.getEnvironment(environmentDTO);
+        EnvironmentDTO foundDto = environmentService.getEnvironment(environmentDTO);
 
-        if (environment != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(environmentDTO);
+        if (foundDto != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(foundDto);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

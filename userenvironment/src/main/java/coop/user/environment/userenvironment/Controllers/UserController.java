@@ -5,18 +5,23 @@ import coop.user.environment.userenvironment.DTO.User.UserDTO;
 import coop.user.environment.userenvironment.DTO.User.RegisterDTO;
 import coop.user.environment.userenvironment.Entities.User;
 import coop.user.environment.userenvironment.Services.UserService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Date;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
+
+    private static final String SECRET_KEY = "234567890987654rtyuijhghyui9uhbhyu8uhbghyu78uygbvghu7uygvgy7ugvgy7ygty78uygr567uytr5678uhgt567uyt5678iujuu8iu78u78iuy78ut67uygty78uyy67uygty678uhy7uy78uyy78uy678uy678uy7uy78u";
 
     @Autowired
     public UserController(UserService userService) {
@@ -35,34 +40,48 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody RegisterDTO userDTO) {
-        boolean createdUser = userService.addUser(userDTO);
-        if (createdUser) {
+    public ResponseEntity<?> createUser(@RequestBody RegisterDTO userDTO) {
+        try{
+            userService.addUser(userDTO);
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+        catch(Exception e){
+            return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody LoginDTO loginDTO) {
-        boolean loggedIn = userService.loginUser(loginDTO);
+        User loggedInUser = userService.loginUser(loginDTO);
 
-        if (loggedIn) {
-            return new ResponseEntity<>("Logged in successfully", HttpStatus.OK);
+        if (loggedInUser != null) {
+
+            String token = generateJwtToken(loggedInUser);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + token);
+
+            return new ResponseEntity<>("Logged in successfully", headers, HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Invalid credentials", HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable("id") long id, @RequestBody UserDTO userDTO) {
-        User updatedUser = userService.updateUser(id, userDTO);
-        if (updatedUser != null) {
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> updateUser(@PathVariable("id") long id, @RequestBody UserDTO userDTO) {
+        try{
+            User updatedUser = userService.updateUser(id, userDTO);
+            if (updatedUser != null) {
+                return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
         }
+        catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @DeleteMapping("/{id}")
@@ -73,5 +92,23 @@ public class UserController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private String generateJwtToken(User user) {
+
+        long expirationTimeMillis = System.currentTimeMillis() + (60 * 60 * 1000); // 1 hour
+
+        String user_id_string = user.getId().toString();
+
+        return Jwts.builder()
+                .setSubject(user_id_string)
+                .setExpiration(new Date(expirationTimeMillis))
+                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .compact();
+    }
+
+    private Long fetchUserIdFromToken(String JWToken){
+        return 1L;
+
     }
 }

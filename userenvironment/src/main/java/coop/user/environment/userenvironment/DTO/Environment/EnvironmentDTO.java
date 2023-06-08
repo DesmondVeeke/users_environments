@@ -14,5 +14,5 @@ public class EnvironmentDTO {
     private List<Long> songs;
     private List<Long> participants;
 
-    private Boolean owner;
+    private Boolean owner = false;
 }

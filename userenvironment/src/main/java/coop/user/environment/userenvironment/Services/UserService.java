@@ -5,11 +5,12 @@ import coop.user.environment.userenvironment.DTO.User.LoginDTO;
 import coop.user.environment.userenvironment.DTO.User.RegisterDTO;
 import coop.user.environment.userenvironment.DTO.User.UserDTO;
 import coop.user.environment.userenvironment.Entities.User;
-import coop.user.environment.userenvironment.Interfaces.UserRepository;
 import coop.user.environment.userenvironment.Interfaces.UserRepositoryCustom;
 import coop.user.environment.userenvironment.Validators.UserValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 import java.util.Optional;
 
@@ -17,61 +18,73 @@ import java.util.Optional;
 public class UserService {
     private final UserRepositoryCustom userRepository;
     private final UserValidation userValidation;
+    private final PasswordEncoder passwordEncoder;
 
     private final UserMapper mapper;
 
     @Autowired
-    public UserService(UserRepositoryCustom userRepository, UserValidation userValidation, UserMapper mapper) {
+    public UserService(UserRepositoryCustom userRepository, UserValidation userValidation, UserMapper mapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userValidation = userValidation;
         this.mapper = mapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public boolean addUser(RegisterDTO dto){
-        //Validate the DTO
-        if(!userValidation.isValidRegistration(dto)){
-            return false;
+    public boolean addUser(RegisterDTO dto) throws Exception {
+        try{
+            userValidation.isValidRegistration(dto);
+            dto.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+            User newUser = mapper.mapRegisterToUser(dto);
+            userRepository.save(newUser);
+
+            return true;
+        }
+        catch(Exception e){
+            throw e;
         }
 
-        User newUser = mapper.mapRegisterToUser(dto);
-        userRepository.save(newUser);
-
-        return true;
     }
-    public boolean loginUser(LoginDTO loginDTO) {
-        Optional<User> userOptional = userRepository.findByEmail(loginDTO.getEmail());
+    public User loginUser(LoginDTO loginDTO) {
+        User foundUser = userRepository.findByEmail(loginDTO.getEmail()).orElse(null);
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (user.getPassword().equals(loginDTO.getPassword())) {
-                return true;
+        if (foundUser != null) {
+            if (passwordEncoder.matches(loginDTO.getPassword(), foundUser.getPassword())) {
+                return foundUser;
             }
         }
 
-        return false;
+        return null;
     }
     public User getUserById(Long id) {
         Optional<User> userOptional = userRepository.findById(id);
         return userOptional.orElse(null);
     }
 
-    public User updateUser(Long id, UserDTO userDTO) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            User existingUser = userOptional.get();
+    public User updateUser(Long id, UserDTO userDTO) throws Exception {
+        User existingUser = userRepository.findById(id).orElse(null);
+        if (existingUser != null) {
+            try {
+                User updatedUser = mapper.UserDTOToUser(userDTO);
+                userValidation.validatePassword(userDTO.getPassword());
 
-            // Map the UserDTO to the existing User
-            User updatedUser = mapper.UserDTOToUser(userDTO);
+                if (!existingUser.getEmail().equals(updatedUser.getEmail())) {
+                    existingUser.setEmail(updatedUser.getEmail());
+                }
 
-            // Set the ID and other properties
-            updatedUser.setId(existingUser.getId());
-            // Set other properties as needed
+                if (!passwordEncoder.matches(updatedUser.getPassword(), existingUser.getPassword())) {
+                    var hashedPassword = passwordEncoder.encode(updatedUser.getPassword());
+                    existingUser.setPassword(hashedPassword);
+                }
 
-            return userRepository.save(updatedUser);
+                return userRepository.save(existingUser);
+            } catch (Exception e) {
+                throw e;
+            }
         }
-        return null;
+        throw new Exception("User ID not found");
     }
-    public boolean deleteUser(Long id) {
+        public boolean deleteUser(Long id) {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -80,4 +93,5 @@ public class UserService {
         }
         return false;
     }
+
 }
