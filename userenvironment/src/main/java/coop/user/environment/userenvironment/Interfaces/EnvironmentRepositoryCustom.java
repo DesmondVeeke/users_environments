@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface EnvironmentRepositoryCustom extends EnvironmentRepository{
     List<Environment> findByParticipantsContaining(User user);
+
+    List<Environment> findByOwner_Id(long ownerId);
 }

@@ -4,9 +4,7 @@ package coop.user.environment.userenvironment.IntegrationTests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import coop.user.environment.userenvironment.DTO.Environment.EnvironmentDTO;
 import coop.user.environment.userenvironment.Entities.Environment;
-import coop.user.environment.userenvironment.Entities.User;
 import coop.user.environment.userenvironment.Interfaces.EnvironmentRepositoryCustom;
-import coop.user.environment.userenvironment.Interfaces.UserRepositoryCustom;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.http.RequestEntity.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -32,9 +27,6 @@ public class EnvironmentControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private UserRepositoryCustom userRepository;
 
     @Autowired
     private EnvironmentRepositoryCustom environmentRepository;
@@ -61,7 +53,7 @@ public class EnvironmentControllerIntegrationTest {
     }
 
     @Test
-    public void testUpdateEnvironmentName() throws Exception {
+    public void UpdateEnvironmentName() throws Exception {
         // Create an environment DTO with the updated name
         EnvironmentDTO environmentDTO = new EnvironmentDTO();
         environmentDTO.setId(4L);

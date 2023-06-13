@@ -16,10 +16,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@AutoConfigureMockMvc
+
 @SpringBootTest
+@AutoConfigureMockMvc
 @Tag("IntegrationTests")
 public class UserControllerIntegrationTest {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -27,7 +29,8 @@ public class UserControllerIntegrationTest {
     public void GetUserById() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{id}", 1)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.email", Matchers.is("desmond@fontys.nl")));
@@ -36,7 +39,8 @@ public class UserControllerIntegrationTest {
     @Test
     public void GetUserById_UserNotFound() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{id}", 0L)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
@@ -46,8 +50,9 @@ public class UserControllerIntegrationTest {
         registerDTO.setEmail("test@example.com");
         registerDTO.setPassword("Pr0p3rPassWordddd%");
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/users")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE")
                         .content(asJsonString(registerDTO)))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andDo(MockMvcResultHandlers.print());
@@ -59,8 +64,9 @@ public class UserControllerIntegrationTest {
         registerDTO.setEmail("test@example.com");
         registerDTO.setPassword("password");
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/users")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE")
                         .content(asJsonString(registerDTO)))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError());
     }
@@ -73,6 +79,7 @@ public class UserControllerIntegrationTest {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE")
                         .content(asJsonString(loginDTO)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Logged in successfully"));
@@ -86,6 +93,7 @@ public class UserControllerIntegrationTest {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE")
                         .content(asJsonString(loginDTO)))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized())
                 .andExpect(MockMvcResultMatchers.content().string("Invalid credentials"));
@@ -100,6 +108,7 @@ public class UserControllerIntegrationTest {
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE")
                         .content(asJsonString(userDTO)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(2)))
@@ -114,20 +123,22 @@ public class UserControllerIntegrationTest {
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", 0L)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("COOP", "TRUE")
                         .content(asJsonString(userDTO)))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     @Test
     public void DeleteUser() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", 4L))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", 4L)
+                        .header("COOP", "TRUE"))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
     public void DeleteUser_UserNotFound() throws Exception {
-
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", 0L))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", 0L)
+                        .header("COOP", "TRUE"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 

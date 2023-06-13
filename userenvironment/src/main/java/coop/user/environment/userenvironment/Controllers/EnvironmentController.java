@@ -35,8 +35,8 @@ public class EnvironmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EnvironmentDTO> getEnvironment(@RequestBody EnvironmentDTO environmentDTO) {
-        EnvironmentDTO foundDto = environmentService.getEnvironment(environmentDTO);
+    public ResponseEntity<EnvironmentDTO> getEnvironment(@PathVariable long id) {
+        EnvironmentDTO foundDto = environmentService.getEnvironment(id);
 
         if (foundDto != null) {
             return ResponseEntity.status(HttpStatus.OK).body(foundDto);

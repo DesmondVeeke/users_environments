@@ -4,16 +4,14 @@ import coop.user.environment.userenvironment.DTO.User.LoginDTO;
 import coop.user.environment.userenvironment.DTO.User.UserDTO;
 import coop.user.environment.userenvironment.DTO.User.RegisterDTO;
 import coop.user.environment.userenvironment.Entities.User;
+import coop.user.environment.userenvironment.Services.JwtService;
 import coop.user.environment.userenvironment.Services.UserService;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -21,11 +19,12 @@ import java.util.Date;
 public class UserController {
     private final UserService userService;
 
-    private static final String SECRET_KEY = "234567890987654rtyuijhghyui9uhbhyu8uhbghyu78uygbvghu7uygvgy7ugvgy7ygty78uygr567uytr5678uhgt567uyt5678iujuu8iu78u78iuy78ut67uygty78uyy67uygty678uhy7uy78uyy78uy678uy678uy7uy78u";
+    private final JwtService jwtService;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
 
@@ -39,7 +38,7 @@ public class UserController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody RegisterDTO userDTO) {
         try{
             userService.addUser(userDTO);
@@ -57,10 +56,11 @@ public class UserController {
 
         if (loggedInUser != null) {
 
-            String token = generateJwtToken(loggedInUser);
+            String token = jwtService.generateJwtToken(loggedInUser);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Bearer " + token);
+            headers.add("Access-Control-Expose-Headers", "Authorization");
 
             return new ResponseEntity<>("Logged in successfully", headers, HttpStatus.OK);
         } else {
@@ -92,23 +92,5 @@ public class UserController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    private String generateJwtToken(User user) {
-
-        long expirationTimeMillis = System.currentTimeMillis() + (60 * 60 * 1000); // 1 hour
-
-        String user_id_string = user.getId().toString();
-
-        return Jwts.builder()
-                .setSubject(user_id_string)
-                .setExpiration(new Date(expirationTimeMillis))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
-                .compact();
-    }
-
-    private Long fetchUserIdFromToken(String JWToken){
-        return 1L;
-
     }
 }

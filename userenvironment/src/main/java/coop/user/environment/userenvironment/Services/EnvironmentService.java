@@ -9,6 +9,7 @@ import coop.user.environment.userenvironment.Interfaces.UserRepositoryCustom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -45,38 +46,30 @@ public class EnvironmentService {
         return true;
     }
 
-    public EnvironmentDTO getEnvironment(EnvironmentDTO environmentDTO) {
-        Environment environment = environmentRepository.findById(environmentDTO.getId()).orElse(null);
+    public EnvironmentDTO getEnvironment(long environmentId) {
+        Environment environment = environmentRepository.findById(environmentId).orElse(null);
 
         if (environment == null) {
             return null;
         }
 
-        EnvironmentDTO foundDto = environmentMapper.EnvironmentToDTO(environment);
-
-        Long ownerID = environment.getOwner().getId();
-        List<Long> participantIds = environmentDTO.getParticipants();
-
-        if (participantIds.contains(ownerID)) {
-            foundDto.setOwner(true);
-            return foundDto;
-        }
-
-        if(foundDto.getParticipants().contains(participantIds.get(0)))
-        {
-            return foundDto;
-        }
-
-        return null;
-
+        return environmentMapper.EnvironmentToDTO(environment);
     }
 
     public List<EnvironmentDTO> getEnvironmentsByParticipantId(long userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
+        User userOptional = userRepository.findById(userId).orElse(null);
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            List<Environment> environments = environmentRepository.findByParticipantsContaining(user);
+        if (userOptional != null) {
+            List<Environment> environments = new ArrayList<>();
+
+            // Find environments where the user is a participant
+            List<Environment> participantEnvironments = environmentRepository.findByParticipantsContaining(userOptional);
+            environments.addAll(participantEnvironments);
+
+            // Find environments where the user is the owner
+            List<Environment> ownerEnvironments = environmentRepository.findByOwner_Id(userId);
+            environments.addAll(ownerEnvironments);
+
             return environments.stream()
                     .map(environmentMapper::EnvironmentToDTO)
                     .collect(Collectors.toList());
